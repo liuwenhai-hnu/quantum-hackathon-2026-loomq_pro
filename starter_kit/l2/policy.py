@@ -57,3 +57,11 @@ def get_formal_model() -> str:
     return policy[
         "formal_model"
     ]
+    
+def get_thinking():
+    policy = load_l2_policy()
+
+    return policy.get(
+        "thinking",
+        {"type": "disabled"},
+    )

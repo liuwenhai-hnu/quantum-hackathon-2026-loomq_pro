@@ -5,6 +5,7 @@ import urllib.request
 from .policy import (
     get_temperature,
     get_stream,
+    get_thinking,
 )
 
 def get_llm_config():
@@ -77,6 +78,7 @@ def call_llm(
         "messages": messages,
         "temperature": get_temperature(),
         "stream": get_stream(),
+        "thinking": get_thinking(),
     }
     data = json.dumps(
         payload
