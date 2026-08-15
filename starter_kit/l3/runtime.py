@@ -2,9 +2,12 @@ import re
 from collections import defaultdict
 from typing import Any, Dict
 
-from l1.api import run_l1
-
-from riscv_emulator import TinyRISCVEmulator
+try:
+    from ..l1.api import run_l1
+    from ..riscv_emulator import TinyRISCVEmulator
+except ImportError:
+    from l1.api import run_l1
+    from riscv_emulator import TinyRISCVEmulator
 
 from .compiler import (
     compile_hybrid_source,

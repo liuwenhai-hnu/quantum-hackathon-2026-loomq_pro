@@ -6,16 +6,28 @@ import os
 import sys
 from typing import Optional
 import getpass
-from loomq_config import (
-    get_config_path,
-    get_default_shots,
-    get_default_target,
-    get_llm_api_key,
-    get_llm_base_url,
-    get_llm_model,
-    load_config,
-    save_config,
-)
+try:
+    from .loomq_config import (
+        get_config_path,
+        get_default_shots,
+        get_default_target,
+        get_llm_api_key,
+        get_llm_base_url,
+        get_llm_model,
+        load_config,
+        save_config,
+    )
+except ImportError:
+    from loomq_config import (
+        get_config_path,
+        get_default_shots,
+        get_default_target,
+        get_llm_api_key,
+        get_llm_base_url,
+        get_llm_model,
+        load_config,
+        save_config,
+    )
 os.environ.setdefault(
     "OPENBLAS_NUM_THREADS",
     "1",
@@ -35,11 +47,18 @@ os.environ.setdefault(
     "NUMEXPR_NUM_THREADS",
     "1",
 )
-from adapter import (
-    agent_chat,
-    agent_run,
-    agent_run_hybrid_explain,
-)
+try:
+    from .adapter import (
+        agent_chat,
+        agent_run,
+        agent_run_hybrid_explain,
+    )
+except ImportError:
+    from adapter import (
+        agent_chat,
+        agent_run,
+        agent_run_hybrid_explain,
+    )
 
 
 SUPPORTED_TARGETS = {

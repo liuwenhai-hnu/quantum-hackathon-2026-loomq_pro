@@ -9,7 +9,10 @@ from .validator import (
     validate_qasm_text,
 )
 
-from l1.api import run_l1
+try:
+    from ..l1.api import run_l1
+except ImportError:
+    from l1.api import run_l1
 
 
 MAX_ATTEMPTS = 3

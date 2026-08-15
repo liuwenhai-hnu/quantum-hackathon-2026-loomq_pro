@@ -5,10 +5,16 @@ from typing import Any, Dict
 from .client import call_llm
 from .policy import get_case_timeout
 
-from l3 import (
-    compile_hybrid_l3,
-    execute_hybrid_l3,
-)
+try:
+    from ..l3 import (
+        compile_hybrid_l3,
+        execute_hybrid_l3,
+    )
+except ImportError:
+    from l3 import (
+        compile_hybrid_l3,
+        execute_hybrid_l3,
+    )
 
 
 MAX_ATTEMPTS = 3

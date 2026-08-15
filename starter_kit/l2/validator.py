@@ -2,7 +2,10 @@ import re
 import json
 from typing import Any, Dict, Optional
 
-from l1 import parse_qasm2
+try:
+    from ..l1.parser import parse_qasm2
+except ImportError:
+    from l1.parser import parse_qasm2
 def extract_qasm_block(text: str) -> str:
     text = text.strip()
 

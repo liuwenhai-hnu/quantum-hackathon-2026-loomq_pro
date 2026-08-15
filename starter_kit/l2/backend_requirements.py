@@ -137,6 +137,10 @@ def extract_backend_requirements(
         "not locally",
         "don't run locally",
         "do not run locally",
+        "don't run this locally",
+        "do not run this locally",
+        "don't run it locally",
+        "do not run it locally",
         "don't want local",
         "do not want local",
         "avoid local",
@@ -144,6 +148,8 @@ def extract_backend_requirements(
         "不需要本地",
         "不想本地运行",
         "不要在本地运行",
+        "不要本地运行",
+        "不要在本机运行",
         "不在本地运行",
     ]
 
