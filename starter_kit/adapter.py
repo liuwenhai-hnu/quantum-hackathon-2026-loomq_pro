@@ -4,15 +4,74 @@
 This file intentionally contains no scoring implementation. Teams may implement
 the functions directly or delegate to another language/runtime with subprocess.
 """
-from l2 import execute_from_prompt
+import importlib
+
 from typing import Any, Dict, List, Tuple
-from l1 import transpile_l1,run_l1
-from l2 import agent_chat_l2,execute_hybrid_from_prompt,explain_hybrid_result
-from l3 import (
-    compile_hybrid_l3,
-    execute_hybrid_l3,
-)
+#from l1 import transpile_l1,run_l1
+#from l2 import agent_chat_l2,execute_hybrid_from_prompt,explain_hybrid_result,execute_from_prompt
+#from l3 import (
+#    compile_hybrid_l3,
+#    execute_hybrid_l3,
+#)
 SUPPORTED_TARGETS = ("spinq", "originq", "braket")
+
+#def _load_module(name: str):
+#    """
+#    Load a LoomQ implementation module in both supported contexts:
+#
+#    1. import starter_kit.adapter
+#    2. import adapter from inside starter_kit/
+#    """
+#
+#    if __package__:
+#        return importlib.import_module(
+#            f"{__package__}.{name}"
+#        )
+#
+#    return importlib.import_module(
+#        name
+#    )
+
+# Support both:
+#   import adapter
+# and:
+#   import starter_kit.adapter
+if __package__:
+    from .l1 import (
+        transpile_l1,
+        run_l1,
+    )
+
+    from .l2 import (
+        agent_chat_l2,
+        execute_from_prompt,
+        execute_hybrid_from_prompt,
+        explain_hybrid_result,
+    )
+
+    from .l3 import (
+        compile_hybrid_l3,
+        execute_hybrid_l3,
+    )
+
+else:
+    from l1 import (
+        transpile_l1,
+        run_l1,
+    )
+
+    from l2 import (
+        agent_chat_l2,
+        execute_from_prompt,
+        execute_hybrid_from_prompt,
+        explain_hybrid_result,
+    )
+
+    from l3 import (
+        compile_hybrid_l3,
+        execute_hybrid_l3,
+    )
+
 
 def transpile(qasm_str: str,target: str) -> str:
     """Translate OpenQASM 2.0 into the target backend's native representation."""
