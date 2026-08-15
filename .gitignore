@@ -5,3 +5,17 @@
 **/.DStore
 __pycache__/
 *.py[cod]
+for pattern in \
+    "*.log" \
+    "*.egg-info/" \
+    "__pycache__/" \
+    "*.pyc" \
+    ".pytest_cache/"
+do
+    grep -qxF "$pattern" .gitignore 2>/dev/null \
+        || echo "$pattern" >> .gitignore
+done
+
+*.log
+*.egg-info/
+*.pyc

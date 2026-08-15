@@ -7,20 +7,23 @@ from .policy import (
     get_stream,
     get_thinking,
 )
-
+from loomq_config import (
+    get_llm_api_key,
+    get_llm_base_url,
+    get_llm_model,
+)
 def get_llm_config():
-    base_url = os.environ.get(
-        "LOOMQ_LLM_BASE_URL"
+    base_url = (
+        get_llm_base_url()
     )
-
-    api_key = os.environ.get(
-        "LOOMQ_LLM_API_KEY"
+    
+    api_key = (
+        get_llm_api_key()
     )
-
-    model = os.environ.get(
-        "LOOMQ_LLM_MODEL"
-    )
-
+    
+    model = (
+        get_llm_model()
+    )        
     if not base_url:
         raise RuntimeError(
             "LOOMQ_LLM_BASE_URL is not set"

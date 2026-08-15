@@ -9,9 +9,9 @@ from .emitters import (
     emit_originq,
 )
 
-from .backends.spinq import run_spinq
-from .backends.braket import run_braket
-from .backends.originq import run_originq
+#from .backends.spinq import run_spinq
+#from .backends.braket import run_braket
+#from .backends.originq import run_originq
 
 
 def transpile_l1(
@@ -60,23 +60,28 @@ def run_l1(
     circuit = parse_qasm2(
         qasm_str
     )
-
     if target == "spinq":
+        from .backends.spinq import run_spinq
+    
         return run_spinq(
             circuit,
-            shots
+            shots,
         )
-
-    if target == "braket":
-        return run_braket(
-            circuit,
-            shots
-        )
-
+    
     if target == "originq":
+        from .backends.originq import run_originq
+    
         return run_originq(
             circuit,
-            shots
+            shots,
+        )
+    
+    if target == "braket":
+        from .backends.braket import run_braket
+    
+        return run_braket(
+            circuit,
+            shots,
         )
 
     raise ValueError(
