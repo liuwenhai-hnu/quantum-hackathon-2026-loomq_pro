@@ -7,11 +7,19 @@ from .policy import (
     get_stream,
     get_thinking,
 )
-from loomq_config import (
-    get_llm_api_key,
-    get_llm_base_url,
-    get_llm_model,
-)
+if __package__.startswith("starter_kit."):
+    from ..loomq_config import (
+        get_llm_api_key,
+        get_llm_base_url,
+        get_llm_model,
+    )
+else:
+    from loomq_config import (
+        get_llm_api_key,
+        get_llm_base_url,
+        get_llm_model,
+    )
+
 def get_llm_config():
     base_url = (
         get_llm_base_url()
