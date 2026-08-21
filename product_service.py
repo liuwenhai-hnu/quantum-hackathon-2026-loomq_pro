@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import cmath
+import importlib.util
 import json
 import math
 import os
@@ -138,6 +139,18 @@ LOCAL_BACKEND_TARGETS = {
     "spinq_taurus_simulator": "spinq",
     "originq_local_simulator": "originq",
     "braket_local_simulator": "braket",
+}
+
+BACKEND_RUNTIME_IMPORTS = {
+    "spinq_taurus_simulator": ("spinqit",),
+    "originq_local_simulator": ("pyqpanda",),
+    "braket_local_simulator": ("braket", "braket.devices", "braket.ir.openqasm"),
+}
+
+BACKEND_RUNTIME_MESSAGES = {
+    "spinq_taurus_simulator": "当前 Python 环境未安装 SpinQ Taurus 本地模拟器依赖。",
+    "originq_local_simulator": "当前 Python 环境未安装 OriginQ CPUQVM 本地模拟器依赖。",
+    "braket_local_simulator": "当前 Python 环境未安装 AWS Braket 本地模拟器依赖。",
 }
 
 BACKEND_LABELS = {
@@ -1027,8 +1040,22 @@ def build_current_change(
     }
 
 
+def get_backend_runtime_readiness() -> dict[str, bool]:
+    readiness = {}
+    for backend_id, module_names in BACKEND_RUNTIME_IMPORTS.items():
+        try:
+            readiness[backend_id] = all(
+                importlib.util.find_spec(module_name) is not None
+                for module_name in module_names
+            )
+        except Exception:
+            readiness[backend_id] = False
+    return readiness
+
+
 def get_local_backend_catalog() -> list[dict[str, Any]]:
     capability_data = load_backend_capabilities()
+    runtime_readiness = get_backend_runtime_readiness()
     catalog = []
     for backend in capability_data["backends"]:
         backend_id = backend["id"]
@@ -1040,6 +1067,12 @@ def get_local_backend_catalog() -> list[dict[str, Any]]:
             "kind_label": BACKEND_LABELS["kind"].get(backend["kind"], backend["kind"]),
             "queue_label": BACKEND_LABELS["queue"].get(backend["queue"], backend["queue"]),
             "cost_label": BACKEND_LABELS["cost"].get(backend["cost"], backend["cost"]),
+            "runtime_available": runtime_readiness.get(backend_id, False),
+            "runtime_message": (
+                "当前 Python 环境已具备运行依赖。"
+                if runtime_readiness.get(backend_id, False)
+                else BACKEND_RUNTIME_MESSAGES[backend_id]
+            ),
         })
     return catalog
 
@@ -1456,6 +1489,23 @@ class ProductRequestHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802
         request_path = urlsplit(self.path).path
+        if request_path == "/api/runtime-readiness":
+            catalog = get_local_backend_catalog()
+            self._send_json(
+                HTTPStatus.OK,
+                {
+                    "ready": all(backend["runtime_available"] for backend in catalog),
+                    "backends": [
+                        {
+                            "id": backend["id"],
+                            "runtime_available": backend["runtime_available"],
+                            "runtime_message": backend["runtime_message"],
+                        }
+                        for backend in catalog
+                    ],
+                },
+            )
+            return
         if request_path == "/api/llm-config":
             session_id = self._get_session_id()
             self._send_json(
@@ -1640,8 +1690,27 @@ class ProductRequestHandler(SimpleHTTPRequestHandler):
         target = LOCAL_BACKEND_TARGETS[backend_id]
         started_at = time.perf_counter()
 
+        if not backend["runtime_available"]:
+            self._send_json(
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                {
+                    "error": "backend_dependency_missing",
+                    "message": backend["runtime_message"],
+                },
+            )
+            return
+
         try:
             result = adapter.run(qasm.strip(), target, shots)
+        except (ImportError, ModuleNotFoundError):
+            self._send_json(
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                {
+                    "error": "backend_dependency_missing",
+                    "message": BACKEND_RUNTIME_MESSAGES[backend_id],
+                },
+            )
+            return
         except (KeyError, TypeError, ValueError) as exc:
             self._send_json(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": "invalid_circuit", "message": f"电路无法运行：{exc}"})
             return

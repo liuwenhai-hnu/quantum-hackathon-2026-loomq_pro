@@ -71,15 +71,9 @@
           <article class="surface circuit-card">
             <header class="editor-header">
               <div class="editor-identity">
-                <h2>电路编辑器 <span class="info-dot" title="电路由真实 L2 生成，并经过 L1 校验">i</span></h2>
+                <h2>电路预览</h2>
                 <span class="experiment-tag" id="workspace-title">等待生成实验</span>
                 <span class="sr-only" id="workspace-status">尚未生成方案</span>
-              </div>
-              <div class="editor-actions" aria-label="电路查看工具">
-                <button type="button" aria-label="撤销" title="展示控件：当前版本不提供电路编辑">↶</button>
-                <button type="button" aria-label="重做" title="展示控件：当前版本不提供电路编辑">↷</button>
-                <button type="button" aria-label="适配视图" title="电路已自动适配画布">⛶</button>
-                <button type="button" aria-label="删除" title="展示控件：当前版本不提供电路编辑">⌫</button>
               </div>
             </header>
             <div class="view-switcher">
@@ -100,7 +94,7 @@
                   <section class="quick-card-example" id="gate-quick-example" hidden><span>例子（计算基态）</span><p id="gate-quick-example-text"></p></section>
                   <section class="quick-card-experiment" id="gate-quick-experiment" hidden><span>在本实验中（作用于 Bell 态）</span><p id="gate-quick-experiment-text"></p></section>
                   <p class="quick-card-why" id="gate-quick-why"></p>
-                  <small>想查看更多数学细节？点击展开 <b aria-hidden="true">⌄</b></small>
+                  <small>点击量子门，看完整解释</small>
                 </aside>
                 <div class="gate-palette" id="gate-palette" aria-label="支持的量子操作">
                   <button type="button" data-tooltip="Hadamard 门：创建可发生干涉的叠加">H</button>
@@ -147,7 +141,7 @@
           </article>
 
           <aside class="surface run-card" aria-labelledby="backend-title">
-            <div class="run-card-heading"><h2>推荐运行后端</h2><span class="info-dot" title="推荐来自后端能力表，可手动切换">i</span></div>
+            <div class="run-card-heading"><h2>推荐运行后端</h2></div>
             <details class="backend-picker" id="backend-picker">
               <summary class="backend-row" id="selected-backend-card">
                 <span class="backend-mark" id="backend-mark" aria-hidden="true">—</span>
@@ -172,7 +166,6 @@
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 7 8 5-8 5V7Z" /></svg>
               <span id="run-label">Run Experiment</span>
             </button>
-            <button class="previous-button" id="previous-circuit" type="button" title="本阶段不保存电路历史" aria-disabled="true">上一轮电路</button>
             <p class="run-status" id="run-status" role="status" aria-live="polite">生成实验后即可在本地模拟器运行。</p>
             <details class="advanced-options">
               <summary>高级选项</summary>

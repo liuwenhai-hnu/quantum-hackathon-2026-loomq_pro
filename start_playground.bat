@@ -6,58 +6,45 @@ if not defined LOOMQ_PORT set "LOOMQ_PORT=4173"
 set "LOOMQ_URL=http://127.0.0.1:%LOOMQ_PORT%/"
 set "LOOMQ_PYTHON_EXE="
 set "LOOMQ_PYTHON_ARGS="
+set "LOOMQ_PYTHON_LABEL="
 set "LOOMQ_SERVICE_ALREADY_RUNNING=0"
 
-call :service_ready
+call :service_http_ready
 if not errorlevel 1 (
-  set "LOOMQ_SERVICE_ALREADY_RUNNING=1"
-  goto open_browser
-)
-
-if defined VIRTUAL_ENV (
-  python -c "import sys; assert sys.version_info[:2] == (3, 10)" >nul 2>&1
-  if not errorlevel 1 set "LOOMQ_PYTHON_EXE=python"
-)
-
-if not defined LOOMQ_PYTHON_EXE if exist ".venv\Scripts\python.exe" (
-  ".venv\Scripts\python.exe" -c "import sys; assert sys.version_info[:2] == (3, 10)" >nul 2>&1
-  if not errorlevel 1 set "LOOMQ_PYTHON_EXE=%CD%\.venv\Scripts\python.exe"
-)
-
-if not defined LOOMQ_PYTHON_EXE (
-  py -3.10 -c "import sys; assert sys.version_info[:2] == (3, 10)" >nul 2>&1
+  call :service_runtime_ready
   if not errorlevel 1 (
-    set "LOOMQ_PYTHON_EXE=py"
-    set "LOOMQ_PYTHON_ARGS=-3.10"
+    set "LOOMQ_SERVICE_ALREADY_RUNNING=1"
+    goto open_browser
   )
-)
-
-if not defined LOOMQ_PYTHON_EXE (
-  python -c "import sys; assert sys.version_info[:2] == (3, 10)" >nul 2>&1
-  if not errorlevel 1 set "LOOMQ_PYTHON_EXE=python"
-)
-
-if not defined LOOMQ_PYTHON_EXE (
-  echo [LoomQ] Python 3.10 was not found.
-  echo Install Python 3.10, create a virtual environment, and try again.
+  echo [LoomQ] Port %LOOMQ_PORT% already has a Product Service without a complete backend runtime.
+  echo [LoomQ] Close that service, then run start_playground.bat again from a complete Python 3.10 environment.
   pause
   exit /b 1
 )
 
-"%LOOMQ_PYTHON_EXE%" %LOOMQ_PYTHON_ARGS% -c "import sys; sys.path.insert(0, r'starter_kit'); import adapter" >nul 2>&1
-if errorlevel 1 (
-  echo [LoomQ] Python dependencies are missing from the selected environment.
-  echo Run: python -m pip install -r starter_kit\requirements.txt
+if exist ".venv\Scripts\python.exe" call :try_python "%CD%\.venv\Scripts\python.exe" "" "repository .venv"
+if not defined LOOMQ_PYTHON_EXE if defined VIRTUAL_ENV if exist "%VIRTUAL_ENV%\Scripts\python.exe" call :try_python "%VIRTUAL_ENV%\Scripts\python.exe" "" "active virtual environment"
+if not defined LOOMQ_PYTHON_EXE call :try_python "py" "-3.10" "Python launcher 3.10"
+if not defined LOOMQ_PYTHON_EXE call :try_python "python" "" "PATH Python"
+
+if not defined LOOMQ_PYTHON_EXE (
+  echo [LoomQ] No complete Python 3.10 runtime was found.
+  echo [LoomQ] Required imports: adapter, spinqit, pyqpanda, braket.
+  echo [LoomQ] Prepare a repository-local environment with:
+  echo   py -3.10 -m venv .venv
+  echo   .venv\Scripts\python.exe -m pip install -r starter_kit\requirements.txt
+  echo   start_playground.bat
   pause
   exit /b 1
 )
 
+echo [LoomQ] Runtime ready: %LOOMQ_PYTHON_LABEL%
 echo [LoomQ] Starting Product Service with %LOOMQ_PYTHON_EXE% %LOOMQ_PYTHON_ARGS% ...
 start "LoomQ Product Service" cmd /k ""%LOOMQ_PYTHON_EXE%" %LOOMQ_PYTHON_ARGS% -B product_service.py --port %LOOMQ_PORT%"
 
 set /a LOOMQ_ATTEMPT=0
 :wait_for_service
-call :service_ready
+call :service_runtime_ready
 if not errorlevel 1 goto open_browser
 set /a LOOMQ_ATTEMPT+=1
 if %LOOMQ_ATTEMPT% GEQ 30 goto start_failed
@@ -82,6 +69,24 @@ echo Check the Product Service window for the detailed error.
 pause
 exit /b 1
 
-:service_ready
+:service_http_ready
 powershell -NoProfile -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; try { $response = Invoke-WebRequest -UseBasicParsing -Uri '%LOOMQ_URL%' -TimeoutSec 1; if ($response.StatusCode -eq 200) { exit 0 } } catch {}; exit 1" >nul 2>&1
 exit /b %errorlevel%
+
+:service_runtime_ready
+powershell -NoProfile -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; try { $response = Invoke-RestMethod -Uri '%LOOMQ_URL%api/runtime-readiness' -TimeoutSec 2; if ($response.ready -eq $true) { exit 0 } } catch {}; exit 1" >nul 2>&1
+exit /b %errorlevel%
+
+:try_python
+set "LOOMQ_CANDIDATE_EXE=%~1"
+set "LOOMQ_CANDIDATE_ARGS=%~2"
+set "LOOMQ_CANDIDATE_LABEL=%~3"
+"%LOOMQ_CANDIDATE_EXE%" %LOOMQ_CANDIDATE_ARGS% -c "import sys; assert sys.version_info[:2] == (3, 10); sys.path.insert(0, r'starter_kit'); import adapter, spinqit, pyqpanda, braket; from braket.devices import LocalSimulator" >nul 2>&1
+if errorlevel 1 (
+  echo [LoomQ] Skipping %LOOMQ_CANDIDATE_LABEL%: Python 3.10 or runtime dependencies are incomplete.
+  exit /b 0
+)
+set "LOOMQ_PYTHON_EXE=%LOOMQ_CANDIDATE_EXE%"
+set "LOOMQ_PYTHON_ARGS=%LOOMQ_CANDIDATE_ARGS%"
+set "LOOMQ_PYTHON_LABEL=%LOOMQ_CANDIDATE_LABEL%"
+exit /b 0

@@ -45,7 +45,7 @@ const elements = {
   resultMeaning: byId("result-meaning"), resultWhy: byId("result-why"), gateReferences: byId("gate-references"),
   resultBitOrder: byId("result-bit-order"), rawBitOrder: byId("raw-bit-order"), rawCounts: byId("raw-counts"),
   rawCountsDetails: byId("raw-counts-details"), chartShots: byId("chart-shots"), keyFormulas: byId("key-formulas"),
-  previousCircuit: byId("previous-circuit"), circuitEmpty: byId("circuit-empty"), resultStatusText: byId("result-status-text"),
+  circuitEmpty: byId("circuit-empty"), resultStatusText: byId("result-status-text"),
   apiStatusButton: byId("api-status-button"), apiStatusLabel: byId("api-status-label"), apiDialog: byId("api-dialog"),
   apiConfigForm: byId("api-config-form"), apiDialogClose: byId("api-dialog-close"), apiCancel: byId("api-cancel"),
   apiBaseUrl: byId("api-base-url"), apiKey: byId("api-key"), apiModel: byId("api-model"),
@@ -355,12 +355,16 @@ elements.backendOptions.addEventListener("change", (event) => {
 
 elements.circuitSvg.addEventListener("pointerover", (event) => {
   const operationElement = event.target.closest("[data-operation-index]");
-  if (!operationElement || pinnedOperationIndex !== null) return;
-  showQuickGateCard(Number(operationElement.dataset.operationIndex));
+  if (!operationElement) return;
+  const operationIndex = Number(operationElement.dataset.operationIndex);
+  if (operationIndex === pinnedOperationIndex) {
+    hideQuickGateCard();
+    return;
+  }
+  showQuickGateCard(operationIndex);
 });
 
 elements.circuitSvg.addEventListener("pointerout", (event) => {
-  if (pinnedOperationIndex !== null) return;
   const operationElement = event.target.closest("[data-operation-index]");
   if (!operationElement || operationElement.contains(event.relatedTarget)) return;
   hideQuickGateCard();
@@ -368,11 +372,16 @@ elements.circuitSvg.addEventListener("pointerout", (event) => {
 
 elements.circuitSvg.addEventListener("focusin", (event) => {
   const operationElement = event.target.closest("[data-operation-index]");
-  if (operationElement && pinnedOperationIndex === null) showQuickGateCard(Number(operationElement.dataset.operationIndex));
+  if (!operationElement) return;
+  const operationIndex = Number(operationElement.dataset.operationIndex);
+  if (operationIndex === pinnedOperationIndex) {
+    hideQuickGateCard();
+    return;
+  }
+  showQuickGateCard(operationIndex);
 });
 
 elements.circuitSvg.addEventListener("focusout", (event) => {
-  if (pinnedOperationIndex !== null) return;
   const operationElement = event.target.closest("[data-operation-index]");
   if (!operationElement || operationElement.contains(event.relatedTarget)) return;
   hideQuickGateCard();
@@ -381,7 +390,7 @@ elements.circuitSvg.addEventListener("focusout", (event) => {
 elements.circuitSvg.addEventListener("click", (event) => {
   const operationElement = event.target.closest("[data-operation-index]");
   if (!operationElement) return;
-  openGateCard(Number(operationElement.dataset.operationIndex));
+  toggleGateCard(Number(operationElement.dataset.operationIndex));
 });
 
 elements.circuitSvg.addEventListener("keydown", (event) => {
@@ -389,7 +398,7 @@ elements.circuitSvg.addEventListener("keydown", (event) => {
   const operationElement = event.target.closest("[data-operation-index]");
   if (!operationElement) return;
   event.preventDefault();
-  openGateCard(Number(operationElement.dataset.operationIndex));
+  toggleGateCard(Number(operationElement.dataset.operationIndex));
 });
 
 elements.gateCardClose.addEventListener("click", () => {
@@ -406,10 +415,6 @@ elements.gateReferences.addEventListener("click", (event) => {
 
 elements.shots.addEventListener("change", normalizeShots);
 elements.shots.addEventListener("blur", normalizeShots);
-
-elements.previousCircuit.addEventListener("click", () => {
-  elements.runStatus.textContent = "当前演示版本不保存电路历史。";
-});
 
 elements.runButton.addEventListener("click", async () => {
   if (!activeExperiment || !["ready", "backend-ready"].includes(generationState) || runState === "running") return;
@@ -511,12 +516,19 @@ function setRunState(state, message = "") {
   elements.workspace.dataset.runState = state;
   elements.runStatus.classList.remove("is-running", "is-error", "is-success");
   elements.runLabel.textContent = state === "running" ? "Running…" : "Run Experiment";
-  const backendName = getSelectedBackend()?.name || "所选本地模拟器";
+  const selectedBackend = getSelectedBackend();
+  const backendName = selectedBackend?.name || "所选本地模拟器";
+  const runtimeUnavailable = selectedBackend?.runtime_available === false;
 
   if (state === "idle") {
     elements.runStatus.textContent = "生成实验后即可在本地模拟器运行。";
   } else if (state === "ready") {
-    elements.runStatus.textContent = `QASM 已就绪，可在 ${backendName} 上运行。`;
+    if (runtimeUnavailable) {
+      elements.runStatus.classList.add("is-error");
+      elements.runStatus.textContent = selectedBackend.runtime_message || "能力支持，但当前 Python 环境缺少运行依赖。";
+    } else {
+      elements.runStatus.textContent = `QASM 已就绪，可在 ${backendName} 上运行。`;
+    }
   } else if (state === "running") {
     elements.runStatus.classList.add("is-running");
     elements.runStatus.textContent = `正在 ${backendName} 上运行…`;
@@ -541,7 +553,8 @@ function updateControlAvailability() {
   elements.firstVisit.disabled = locked;
   elements.shots.disabled = runState === "running";
   elements.backendOptions.querySelectorAll("[data-backend-option]").forEach((input) => { input.disabled = locked; });
-  elements.runButton.disabled = !["ready", "backend-ready"].includes(generationState) || !activeExperiment || !selectedBackendId || runState === "running";
+  const backendRuntimeReady = getSelectedBackend()?.runtime_available !== false;
+  elements.runButton.disabled = !["ready", "backend-ready"].includes(generationState) || !activeExperiment || !selectedBackendId || !backendRuntimeReady || runState === "running";
 }
 
 function clearRunResult() {
@@ -660,7 +673,7 @@ function renderBackendChooser(backends, recommendation) {
       <input type="radio" name="backend" data-backend-option value="${escapeMarkup(backend.id)}"${backend.id === selectedBackendId ? " checked" : ""} />
       <span class="backend-option-copy">
         <strong>${escapeMarkup(backend.name)}</strong>
-        <small>${escapeMarkup(backend.kind_label)} · 最大 ${backend.max_qubits} qubits · ${escapeMarkup(backend.queue_label)} · ${escapeMarkup(backend.cost_label)} · ${backend.requires_account ? "需要账号" : "无需账号"}</small>
+        <small>${escapeMarkup(backend.kind_label)} · 最大 ${backend.max_qubits} qubits · ${escapeMarkup(backend.queue_label)} · ${escapeMarkup(backend.cost_label)} · ${backend.requires_account ? "需要账号" : "无需账号"}${backend.runtime_available === false ? " · 当前依赖未就绪" : ""}</small>
       </span>
       ${backend.id === recommendedBackendId ? '<span class="recommend">AI 推荐</span>' : ""}
     </label>
@@ -680,7 +693,8 @@ function renderSelectedBackend() {
   elements.backendRecommendBadge.textContent = isRecommended ? "AI 推荐" : (recommendedBackendId ? "手动选择" : "可用后端");
   elements.backendRecommendBadge.classList.toggle("is-manual", !isRecommended);
   const accountLabel = backend.requires_account ? "需要账号" : "无需账号";
-  elements.backendSummary.textContent = `${backend.kind_label} · ${backend.cost_label} · ${accountLabel} · ${backend.queue_label}`;
+  const runtimeLabel = backend.runtime_available === false ? " · 当前不可运行" : "";
+  elements.backendSummary.textContent = `${backend.kind_label} · ${backend.cost_label} · ${accountLabel} · ${backend.queue_label}${runtimeLabel}`;
   elements.backendCapacity.textContent = `最大 ${backend.max_qubits} 量子比特${backend.notes ? ` · ${backend.notes}` : ""}`;
   elements.backendReason.textContent = isRecommended
     ? backendRecommendationReason
@@ -693,7 +707,9 @@ function renderSelectedBackend() {
     <div><dt>排队</dt><dd>${escapeMarkup(backend.queue_label)}</dd></div>
     <div><dt>费用</dt><dd>${escapeMarkup(backend.cost_label)}</dd></div>
     <div><dt>账号</dt><dd>${accountLabel}</dd></div>
+    <div><dt>本机运行</dt><dd>${backend.runtime_available === false ? "依赖未就绪" : "已就绪"}</dd></div>
   `;
+  if (["ready", "idle"].includes(runState)) setRunState(activeExperiment ? "ready" : "idle");
 }
 
 function getSelectedBackend() {
@@ -793,6 +809,14 @@ function highlightOperation(operationIndex) {
   });
 }
 
+function pinOperation(operationIndex) {
+  elements.circuitSvg.querySelectorAll("[data-operation-index]").forEach((element) => {
+    const pinned = Number(element.dataset.operationIndex) === operationIndex;
+    element.classList.toggle("is-pinned", pinned);
+    element.setAttribute("aria-pressed", String(pinned));
+  });
+}
+
 function showQuickGateCard(operationIndex) {
   const operation = getOperation(operationIndex);
   if (!operation?.gate_card) return;
@@ -819,7 +843,17 @@ function showQuickGateCard(operationIndex) {
 
 function hideQuickGateCard() {
   elements.gateQuickCard.hidden = true;
-  if (pinnedOperationIndex === null) highlightOperation(-1);
+  highlightOperation(-1);
+}
+
+function toggleGateCard(operationIndex) {
+  if (pinnedOperationIndex === operationIndex) {
+    pinnedOperationIndex = null;
+    hideGateCard();
+    hideQuickGateCard();
+    return;
+  }
+  openGateCard(operationIndex);
 }
 
 function openGateCard(operationIndex) {
@@ -827,7 +861,7 @@ function openGateCard(operationIndex) {
   if (!operation?.gate_card) return;
   pinnedOperationIndex = operationIndex;
   hideQuickGateCard();
-  highlightOperation(operationIndex);
+  pinOperation(operationIndex);
   const card = operation.gate_card;
   const current = card.current;
   elements.gateCardConcept.textContent = card.concept;
@@ -873,6 +907,7 @@ function gateMathMarkup(math) {
 
 function hideGateCard() {
   elements.gateCard.hidden = true;
+  pinOperation(-1);
   highlightOperation(-1);
 }
 
