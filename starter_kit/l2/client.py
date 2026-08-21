@@ -2,6 +2,7 @@ import json
 import os
 import urllib.error
 import urllib.request
+from contextvars import ContextVar, Token
 from .policy import (
     get_temperature,
     get_stream,
@@ -20,7 +21,27 @@ except ImportError:
         get_llm_model,
     )
 
+
+_runtime_config: ContextVar[tuple[str, str, str] | None] = ContextVar(
+    "loomq_llm_runtime_config",
+    default=None,
+)
+
+
+def set_runtime_llm_config(base_url: str, api_key: str, model: str) -> Token:
+    """Set an LLM config for the current request context only."""
+    return _runtime_config.set((base_url, api_key, model))
+
+
+def reset_runtime_llm_config(token: Token) -> None:
+    """Restore the previous request-scoped LLM config."""
+    _runtime_config.reset(token)
+
 def get_llm_config():
+    runtime_config = _runtime_config.get()
+    if runtime_config is not None:
+        return runtime_config
+
     base_url = (
         get_llm_base_url()
     )
