@@ -25,15 +25,15 @@ docker run --rm -p 4173:4173 `
 
 ## 方式二：Windows 一键启动
 
-推荐使用 **Python 3.10**。在仓库根目录依次执行：
+推荐使用 **Python 3.10**。克隆并解压仓库后，直接双击根目录中的：
 
-```powershell
-py -3.10 -m venv .venv
-.venv\Scripts\activate
-python -m pip install --upgrade pip
-python -m pip install -r starter_kit\requirements.txt
+```text
 start_playground.bat
 ```
+
+首次运行会先征求确认，然后自动在仓库中创建本地 `.venv` 并安装 `starter_kit/requirements.txt`。安装完成且 `adapter`、`spinqit`、`pyqpanda`、`braket` 全部通过运行预检后，才会启动 Product Service。第二次双击会直接复用已准备好的 `.venv`。
+
+如果没有找到 Python 3.10、用户取消初始化、依赖安装失败或运行预检不通过，启动器会显示具体原因并停止，不会显示虚假的 Ready 状态。
 
 启动成功后，浏览器会自动打开：
 
@@ -88,4 +88,4 @@ API Key 只保存在当前 Product Service 进程的浏览器会话中，不写�
 | API 未配置 | 点击右上角“连接 API”，测试并应用自己的配置。 |
 | API Key 无效 | 检查 Key 是否复制完整、是否过期，以及是否有模型调用权限。 |
 | Model 不存在或无权限 | 使用服务商实际支持的模型名；DeepSeek 示例为 `deepseek-v4-flash`。 |
-| Python 依赖缺失 | 激活 Python 3.10 环境后重新运行 `python -m pip install -r starter_kit\requirements.txt`。 |
+| Python 依赖缺失 | 重新双击 `start_playground.bat`，确认首次初始化；启动器会创建或补全仓库 `.venv` 并重新执行严格运行预检。 |
