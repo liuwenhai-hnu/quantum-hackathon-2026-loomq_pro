@@ -195,14 +195,33 @@ print("L2 backend recommendation")
 print("=" * 60)
 
 
+backend_replies = [
+    """
+LOOMQ_TASK: BACKEND
+LOOMQ_ACTION: GET_BACKEND_CAPABILITIES
+""",
+    """
+LOOMQ_TASK: BACKEND
+LOOMQ_DECISION:
+{
+  "status": "selected",
+  "backend_id": "originq_local_simulator",
+  "constraints": {
+    "platform": "originq",
+    "local": true,
+    "simulator": true
+  },
+  "reason": "OriginQ's local CPUQVM satisfies the request."
+}
+""",
+]
+
+
 def fake_backend(
     messages,
     timeout,
 ):
-    return """
-LOOMQ_TASK: BACKEND
-Recommended backend: originq_cpuqvm
-"""
+    return backend_replies.pop(0)
 
 
 agent.call_llm = fake_backend
@@ -219,7 +238,7 @@ assert (
 )
 
 assert (
-    "originq_cpuqvm"
+    "originq_local_simulator"
     in backend_reply
 )
 
