@@ -38,7 +38,7 @@ if not defined LOOMQ_BOOTSTRAP_EXE (
   exit /b 1
 )
 
-echo [LoomQ] First-time setup will create or repair .venv and install starter_kit requirements.
+echo [LoomQ] First-time setup will create or repair starter_kit\.venv and install runtime requirements.
 echo [LoomQ] Python: %LOOMQ_BOOTSTRAP_LABEL%
 echo [LoomQ] This may take several minutes and requires network access.
 choice /C YN /N /M "[LoomQ] Continue? [Y/N]: "
@@ -57,7 +57,7 @@ rem Keep the repository-local runtime out of Git without changing project files.
 > ".venv\.gitignore" echo *
 
 echo [LoomQ] Installing runtime dependencies...
-".venv\Scripts\python.exe" -m pip install -r "starter_kit\requirements.txt"
+".venv\Scripts\python.exe" -m pip install -r "requirements.txt"
 if errorlevel 1 goto dependency_install_failed
 
 set "LOOMQ_PYTHON_EXE="
@@ -112,7 +112,7 @@ pause
 exit /b 1
 
 :dependency_install_failed
-echo [LoomQ] Failed to install starter_kit requirements into .venv.
+echo [LoomQ] Failed to install requirements into starter_kit\.venv.
 echo [LoomQ] Check the network connection and the pip error above. No service was started.
 pause
 exit /b 1
@@ -129,7 +129,7 @@ exit /b %errorlevel%
 set "LOOMQ_CANDIDATE_EXE=%~1"
 set "LOOMQ_CANDIDATE_ARGS=%~2"
 set "LOOMQ_CANDIDATE_LABEL=%~3"
-"%LOOMQ_CANDIDATE_EXE%" %LOOMQ_CANDIDATE_ARGS% -c "import sys; assert sys.version_info[:2] == (3, 10); sys.path.insert(0, r'starter_kit'); import adapter, spinqit, pyqpanda, braket; from braket.devices import LocalSimulator" >nul 2>&1
+"%LOOMQ_CANDIDATE_EXE%" %LOOMQ_CANDIDATE_ARGS% -c "import sys; assert sys.version_info[:2] == (3, 10); import adapter, spinqit, pyqpanda, braket; from braket.devices import LocalSimulator" >nul 2>&1
 if errorlevel 1 (
   echo [LoomQ] Skipping %LOOMQ_CANDIDATE_LABEL%: Python 3.10 or runtime dependencies are incomplete.
   exit /b 0

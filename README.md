@@ -6,10 +6,10 @@
 
 用自然语言生成量子电路，在 SpinQ、OriginQ 和 AWS Braket 本地模拟器上运行，并通过电路、量子门解释和真实 counts 理解实验结果。
 
-- Docker：`docker build -f Dockerfile.playground -t loomq-playground:local .`，然后运行 `docker run --rm -p 4173:4173 loomq-playground:local`
-- Windows 一键启动：双击 `start_playground.bat`
-- 手动启动：`python product_service.py`，然后访问 `http://127.0.0.1:4173/`
-- 第一次试玩请阅读：[Playground 快速开始](docs/PLAYGROUND_QUICKSTART.md)
+- Docker：`docker build -f starter_kit/Dockerfile.playground -t loomq-playground:local starter_kit`，然后运行 `docker run --rm -p 4173:4173 loomq-playground:local`
+- Windows 一键启动：双击 `starter_kit\start_playground.bat`
+- 手动启动：`python starter_kit/product_service.py`，然后访问 `http://127.0.0.1:4173/`
+- 第一次试玩请阅读：[Playground 快速开始](starter_kit/docs/PLAYGROUND_QUICKSTART.md)
 
 ## 包内容
 

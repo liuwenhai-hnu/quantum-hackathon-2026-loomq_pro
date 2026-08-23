@@ -11,11 +11,11 @@ Playground 提供自然语言生成实验、OpenQASM 与电路预览、量子门
 
 ### 独立新增的产品层
 
-- `frontend/`：原生 HTML、CSS 和 JavaScript 前端。
-- `product_service.py`：静态页面与 Playground API 服务，负责会话配置、实验生成、运行调用和结果整理。
-- `start_playground.bat`：Windows 启动与 Python 运行环境检查。
-- `Dockerfile.playground`、`.dockerignore`：Playground 独立容器入口，不替换比赛 evaluator 的 Dockerfile。
-- `docs/PLAYGROUND_QUICKSTART.md`：首次使用说明。
+- `starter_kit/frontend/`：原生 HTML、CSS 和 JavaScript 前端。
+- `starter_kit/product_service.py`：静态页面与 Playground API 服务，负责会话配置、实验生成、运行调用和结果整理。
+- `starter_kit/start_playground.bat`：Windows 启动与 Python 运行环境检查。
+- `starter_kit/Dockerfile.playground`、`starter_kit/.dockerignore`：Playground 独立容器入口，不替换比赛 evaluator 的 Dockerfile。
+- `starter_kit/docs/PLAYGROUND_QUICKSTART.md`：首次使用说明。
 
 ### 对比赛核心的必要兼容增量
 
@@ -75,10 +75,10 @@ Playground 只通过现有 `adapter.agent_chat()` 和 `adapter.run()` 接入比�
 
 ## 启动与验证
 
-首次试玩请参阅 [Playground 快速开始](PLAYGROUND_QUICKSTART.md)。Windows 环境可在仓库根目录运行：
+首次试玩请参阅 [Playground 快速开始](PLAYGROUND_QUICKSTART.md)。Windows 环境可从仓库根目录运行：
 
 ```powershell
-start_playground.bat
+starter_kit\start_playground.bat
 ```
 
-然后访问 `http://127.0.0.1:4173/`。不要直接通过 `file://` 打开 `frontend/index.html`。
+然后访问 `http://127.0.0.1:4173/`。不要直接通过 `file://` 打开 `starter_kit/frontend/index.html`。

@@ -23,7 +23,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent
 FRONTEND_DIR = ROOT / "frontend"
-STARTER_KIT_DIR = ROOT / "starter_kit"
+STARTER_KIT_DIR = ROOT
 
 if str(STARTER_KIT_DIR) not in sys.path:
     sys.path.insert(0, str(STARTER_KIT_DIR))

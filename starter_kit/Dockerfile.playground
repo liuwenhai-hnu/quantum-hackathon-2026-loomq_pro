@@ -7,14 +7,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4 \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /workspace/loomq
+WORKDIR /workspace/loomq/starter_kit
 
-COPY starter_kit/requirements.txt ./starter_kit/requirements.txt
-RUN python -m pip install --no-cache-dir -r starter_kit/requirements.txt
+COPY requirements.txt ./requirements.txt
+RUN python -m pip install --no-cache-dir -r requirements.txt
 
-COPY starter_kit ./starter_kit
-COPY frontend ./frontend
-COPY product_service.py ./product_service.py
+COPY . .
 
 EXPOSE 4173
 

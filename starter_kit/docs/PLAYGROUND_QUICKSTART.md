@@ -7,7 +7,7 @@ LoomQ Playground 是一个面向量子计算初学者的网页实验台：用自
 已安装并启动 Docker 后，在仓库根目录执行：
 
 ```powershell
-docker build -f Dockerfile.playground -t loomq-playground:local .
+docker build -f starter_kit/Dockerfile.playground -t loomq-playground:local starter_kit
 docker run --rm -p 4173:4173 loomq-playground:local
 ```
 
@@ -25,13 +25,13 @@ docker run --rm -p 4173:4173 `
 
 ## 方式二：Windows 一键启动
 
-推荐使用 **Python 3.10**。克隆并解压仓库后，直接双击根目录中的：
+推荐使用 **Python 3.10**。克隆并解压仓库后，直接双击 `starter_kit` 目录中的：
 
 ```text
-start_playground.bat
+starter_kit\start_playground.bat
 ```
 
-首次运行会先征求确认，然后自动在仓库中创建本地 `.venv` 并安装 `starter_kit/requirements.txt`。安装完成且 `adapter`、`spinqit`、`pyqpanda`、`braket` 全部通过运行预检后，才会启动 Product Service。第二次双击会直接复用已准备好的 `.venv`。
+首次运行会先征求确认，然后自动创建 `starter_kit/.venv` 并安装 `starter_kit/requirements.txt`。安装完成且 `adapter`、`spinqit`、`pyqpanda`、`braket` 全部通过运行预检后，才会启动 Product Service。第二次双击会直接复用已准备好的 `.venv`。
 
 如果没有找到 Python 3.10、用户取消初始化、依赖安装失败或运行预检不通过，启动器会显示具体原因并停止，不会显示虚假的 Ready 状态。
 
@@ -47,10 +47,10 @@ http://127.0.0.1:4173/
 
 ```powershell
 python -m pip install -r starter_kit\requirements.txt
-python product_service.py
+python starter_kit/product_service.py
 ```
 
-> 不要直接双击 `frontend/index.html`。静态文件无法连接 Product Service，因此不能生成或运行实验。
+> 不要直接双击 `starter_kit/frontend/index.html`。静态文件无法连接 Product Service，因此不能生成或运行实验。
 
 ## 第一次使用
 
@@ -84,8 +84,8 @@ API Key 只保存在当前 Product Service 进程的浏览器会话中，不写�
 
 | 现象 | 处理方法 |
 |---|---|
-| Product Service 未连接 | 确认 `product_service.py` 正在运行，并访问 `http://127.0.0.1:4173/`，不要打开 `file://` 页面。 |
+| Product Service 未连接 | 确认 `starter_kit/product_service.py` 正在运行，并访问 `http://127.0.0.1:4173/`，不要打开 `file://` 页面。 |
 | API 未配置 | 点击右上角“连接 API”，测试并应用自己的配置。 |
 | API Key 无效 | 检查 Key 是否复制完整、是否过期，以及是否有模型调用权限。 |
 | Model 不存在或无权限 | 使用服务商实际支持的模型名；DeepSeek 示例为 `deepseek-v4-flash`。 |
-| Python 依赖缺失 | 重新双击 `start_playground.bat`，确认首次初始化；启动器会创建或补全仓库 `.venv` 并重新执行严格运行预检。 |
+| Python 依赖缺失 | 重新双击 `starter_kit/start_playground.bat`，确认首次初始化；启动器会创建或补全 `starter_kit/.venv` 并重新执行严格运行预检。 |
